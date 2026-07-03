@@ -1,0 +1,22 @@
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar{{ producto.idProducto }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Eliminar Producto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'eliminar_producto' producto.idProducto %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Está seguro de eliminar <strong>{{ producto.nombre }}</strong>?</p>
+                    <p class="text-danger">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

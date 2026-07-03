@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
+
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
+    <h2><i class="fa-solid fa-cart-shopping me-2"></i>Panel de Gestión de Ventas</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearVenta">
+        <i class="fa-solid fa-plus me-1"></i> Nueva Venta
+    </button>
+</div>
+<div class="contenedor-exportar animate-fade-up">
+    <a href="{% url 'exportar_ventas_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_ventas_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4 animate-stagger">
+    <div class="col-md-4 animate-item">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6 class="card-title">Ventas de Hoy</h6>
+                <h4>${{ ventas_hoy|floatformat:0|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 animate-item">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">Total del Mes</h6>
+                <h4>${{ total_mes|floatformat:0|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 animate-item">
+        <div class="card text-white bg-dark">
+            <div class="card-body">
+                <h6 class="card-title">Total Ventas Realizadas</h6>
+                <h4>{{ total_ventas }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4 animate-fade-up">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label mb-1">Buscar</label>
+                <input type="text" name="buscar" class="form-control"
+                       placeholder="Buscar por nombre de cliente..."
+                       value="{{ request.GET.buscar }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Desde</label>
+                <input type="date" name="fecha_desde" class="form-control"
+                       value="{{ request.GET.fecha_desde }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Hasta</label>
+                <input type="date" name="fecha_hasta" class="form-control"
+                       value="{{ request.GET.fecha_hasta }}">
+            </div>
+            <div class="col-md-5 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-fill h-100">
+                    <i class="fa-solid fa-search me-1"></i> Aplicar
+                </button>
+                {% if request.GET.buscar or request.GET.fecha_desde or request.GET.fecha_hasta %}
+                <a href="{% url 'ventas' %}" class="btn btn-secondary flex-fill h-100">Limpiar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de ventas -->
+<div class="card border-0 shadow-sm animate-fade-up">
+    <div class="card-header bg-dark text-white">
+        <i class="fa-solid fa-list me-2"></i>Ventas Registradas
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="animate-stagger">
+                {% for v in ventas %}
+                <tr class="animate-item">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>{{ v.cliente }}</td>
+                    <td>
+                        {% for d in v.detalles.all %}
+                            {{ d.producto_nombre }} (x{{ d.cantidad }}){% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            <span class="text-muted">—</span>
+                        {% endfor %}
+                    </td>
+                    <td><strong>${{ v.total|floatformat:0|intcomma }}</strong></td>
+                    <td>
+                        <span class="badge {% if v.estado == 'Completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ v.estado }}
+                        </span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerVenta{{ v.id }}" title="Ver detalle">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        {% if v.estado == 'Completada' %}
+                            <button class="btn btn-sm btn-secondary" disabled><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-sm btn-secondary" disabled><i class="fa-solid fa-trash"></i></button>
+                        {% else %}
+                            <button class="btn btn-sm btn-warning"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditarVenta{{ v.id }}">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <form method="post" action="{% url 'completar_venta' v.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success" title="Completar">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </form>
+                            <button class="btn btn-sm btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEliminarVenta{{ v.id }}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No hay ventas registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ==================== MODAL CREAR VENTA ==================== -->
+<div class="modal fade" id="modalCrearVenta" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Venta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'crear_venta' %}" id="formCrearVenta">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold mb-3">1. Seleccionar Productos</h6>
+                            <input type="text" id="busquedaProductos" class="form-control mb-3"
+                                   placeholder="🔍 Filtrar productos...">
+                            <div style="max-height: 380px; overflow-y: auto; padding-right: 4px;">
+                                {% if productos %}
+                                    {% for p in productos %}
+                                    <div class="card mb-2 shadow-sm border producto-card" data-nombre="{{ p.nombre|lower }}">
+                                        <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ p.nombre }}</h6>
+                                                <small class="text-muted">Stock: {{ p.stock }}</small>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="text-primary fw-bold mb-1">${{ p.precio|floatformat:0|intcomma }}</div>
+                                                <button type="button" class="btn btn-primary btn-sm"
+                                                        onclick="agregarProducto('{{ p.idProducto }}', '{{ p.nombre|escapejs }}', {{ p.precio|stringformat:'f' }}, {{ p.stock }})">
+                                                    <i class="fa-solid fa-plus"></i> Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="alert alert-warning">No hay productos disponibles.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">2. Resumen de Venta</h6>
+                            <div id="zonaCarrito" style="min-height: 160px; max-height: 260px; overflow-y: auto;" class="mb-2">
+                                <p id="tituloCarrito" class="fw-bold text-success mb-1 d-none">
+                                    <i class="fa-solid fa-check-circle me-1"></i> Productos agregados al carrito
+                                </p>
+                                <div id="msgCarritoVacio" class="text-center text-muted py-4">
+                                    <i class="fa-solid fa-cart-shopping fa-2x mb-2"></i>
+                                    <p class="mb-0">Agrega productos para comenzar</p>
+                                </div>
+                                <div id="alertaCarritoVacio" class="alert alert-danger d-none py-2 mb-0">
+                                    Por favor debe agregar al menos un producto para poder guardar la venta
+                                </div>
+                                <div id="alertaProductoDuplicado" class="alert alert-warning d-none py-2 mb-0">
+                                    El producto ya está agregado. Ajusta la cantidad desde el carrito.
+                                </div>
+                                <table class="table table-sm table-bordered d-none" id="tablaCarrito">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th style="width:110px">Cantidad</th>
+                                            <th class="text-end">Total</th>
+                                            <th style="width:40px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="filasCarrito"></tbody>
+                                </table>
+                            </div>
+                            <div id="camposOcultosProductos"></div>
+                            <hr>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre del Cliente <span class="text-danger">*</span></label>
+                                <input type="text" name="cliente" id="inputClienteCrear"
+                                       class="form-control" placeholder="Solo letras y espacios"
+                                       maxlength="30" autocomplete="off">
+                                <div id="feedbackCliente" class="text-danger small mt-1"></div>
+                                <small id="contadorCliente" class="text-muted">0/30 caracteres</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
+                                <select name="estado" id="selectEstado" class="form-select">
+                                    <option value="">— Seleccionar estado —</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Completada">Completada</option>
+                                </select> 
+                                <div id="feedbackEstado" class="text-danger small mt-1"></div>
+                            </div>
+                            <div class="bg-light border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 fw-bold mb-0">Total a pagar:</span>
+                                    <span class="h5 fw-bold text-primary mb-0" id="totalCarrito">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-save me-1"></i> Guardar Venta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODALES EDITAR ==================== -->
+{% for v in ventas %}
+{% if v.estado != 'Completada' %}
+<div class="modal fade" id="modalEditarVenta{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fa-solid fa-pen me-1"></i> Editar Venta #{{ forloop.counter }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'editar_venta' v.id %}" id="formEditarVenta{{ v.id }}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold mb-3">Agregar más productos</h6>
+                            <input type="text" id="busquedaProductosEdit{{ v.id }}" class="form-control mb-3"
+                                   placeholder="🔍 Filtrar productos...">
+                            <div style="max-height: 380px; overflow-y: auto; padding-right: 4px;">
+                                {% for p in productos %}
+                                <div class="card mb-2 shadow-sm border producto-card-edit{{ v.id }}" data-nombre="{{ p.nombre|lower }}">
+                                    <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ p.nombre }}</h6>
+                                            <small class="text-muted">Stock: {{ p.stock }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="text-primary fw-bold mb-1">${{ p.precio|floatformat:0|intcomma }}</div>
+                                            <button type="button" class="btn btn-primary btn-sm"
+                                                    onclick="agregarProductoEdit{{ v.id }}('{{ p.idProducto }}', '{{ p.nombre|escapejs }}', {{ p.precio|stringformat:'f' }}, {{ p.stock }})">
+                                                <i class="fa-solid fa-plus"></i> Agregar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Productos en la venta</h6>
+                            <div id="zonaCarritoEdit{{ v.id }}" style="min-height: 200px; max-height: 260px; overflow-y: auto;" class="mb-2">
+                                <table class="table table-sm table-bordered" id="tablaCarritoEdit{{ v.id }}">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th style="width:110px">Cantidad</th>
+                                            <th class="text-end">Total</th>
+                                            <th style="width:40px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="filasCarritoEdit{{ v.id }}"></tbody>
+                                </table>
+                                <div id="alertaProductoDuplicadoEdit{{ v.id }}" class="alert alert-warning d-none py-2 mb-0">
+                                    El producto ya está agregado, ajusta la cantidad.
+                                </div>
+                            </div>
+                            <div id="camposOcultosProductosEdit{{ v.id }}"></div>
+                            <hr>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Cliente <span class="text-danger">*</span></label>
+                                <input type="text" name="cliente" id="inputClienteEdit{{ v.id }}"
+                                       class="form-control input-cliente-editar"
+                                       value="{{ v.cliente }}"
+                                       maxlength="30" autocomplete="off">
+                                <div class="feedback-editar text-danger small mt-1"></div>
+                                <small class="contador-editar text-muted">{{ v.cliente|length }}/30 caracteres</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
+                                <select name="estado" class="form-select select-estado-editar">
+                                    <option value="">— Seleccionar estado —</option>
+                                    <option value="Pendiente"  {% if v.estado == 'Pendiente'  %}selected{% endif %}>Pendiente</option>
+                                    <option value="Completada" {% if v.estado == 'Completada' %}selected{% endif %}>Completada</option>
+                                </select>
+                                <div class="feedback-estado-editar text-danger small mt-1"></div>
+                            </div>
+                            <div class="bg-light border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 fw-bold mb-0">Total a pagar:</span>
+                                    <span class="h5 fw-bold text-primary mb-0" id="totalCarritoEdit{{ v.id }}">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fa-solid fa-save me-1"></i> Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+var carritoEdit{{ v.id }} = [
+    {% for d in v.detalles.all %}
+    { productoId: '{{ d.producto_nombre|escapejs }}', nombre: '{{ d.producto_nombre|escapejs }}', precio: parseFloat('{{ d.precio|stringformat:"f" }}'), cantidad: parseInt('{{ d.cantidad }}'), stock: 999 }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+document.getElementById('modalEditarVenta{{ v.id }}').addEventListener('shown.bs.modal', function () {
+    renderCarritoEdit{{ v.id }}();
+});
+
+document.getElementById('busquedaProductosEdit{{ v.id }}').addEventListener('input', function () {
+    var term = this.value.toLowerCase();
+    document.querySelectorAll('.producto-card-edit{{ v.id }}').forEach(function (card) {
+        card.style.display = card.getAttribute('data-nombre').includes(term) ? 'block' : 'none';
+    });
+});
+
+function agregarProductoEdit{{ v.id }}(id, nombre, precio, stock) {
+    // Comparar por nombre porque DetalleVenta no guarda idProducto
+    for (var i = 0; i < carritoEdit{{ v.id }}.length; i++) {
+        if (carritoEdit{{ v.id }}[i].nombre === nombre) {
+            var al = document.getElementById('alertaProductoDuplicadoEdit{{ v.id }}');
+            if (al) { al.classList.remove('d-none'); setTimeout(function () { al.classList.add('d-none'); }, 2500); }
+            return;
+        }
+    }
+    var p = parseFloat(String(precio).replace(',', '.')) || 0;
+    carritoEdit{{ v.id }}.push({ productoId: String(id), nombre: nombre, precio: p, cantidad: 1, stock: parseInt(stock) || 999 });
+    renderCarritoEdit{{ v.id }}();
+}
+
+function sumarEdit{{ v.id }}(idx) {
+    if (carritoEdit{{ v.id }}[idx].cantidad < carritoEdit{{ v.id }}[idx].stock) {
+        carritoEdit{{ v.id }}[idx].cantidad++;
+        renderCarritoEdit{{ v.id }}();
+    }
+}
+
+function restarEdit{{ v.id }}(idx) {
+    if (carritoEdit{{ v.id }}[idx].cantidad > 1) { carritoEdit{{ v.id }}[idx].cantidad--; }
+    else { carritoEdit{{ v.id }}.splice(idx, 1); }
+    renderCarritoEdit{{ v.id }}();
+}
+
+function eliminarEdit{{ v.id }}(idx) {
+    carritoEdit{{ v.id }}.splice(idx, 1);
+    renderCarritoEdit{{ v.id }}();
+}
+
+function renderCarritoEdit{{ v.id }}() {
+    var tbody = document.getElementById('filasCarritoEdit{{ v.id }}');
+    var totalEl = document.getElementById('totalCarritoEdit{{ v.id }}');
+    var ocultos = document.getElementById('camposOcultosProductosEdit{{ v.id }}');
+    if (!tbody) return;
+    ocultos.innerHTML = '';
+    tbody.innerHTML = '';
+    var total = 0;
+    for (var k = 0; k < carritoEdit{{ v.id }}.length; k++) {
+        var item = carritoEdit{{ v.id }}[k];
+        var sub = item.precio * item.cantidad;
+        total += sub;
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><span class="fw-bold">' + item.nombre + '</span><br><small class="text-muted">$' + item.precio.toLocaleString('es-CO') + ' c/u</small></td>' +
+            '<td><div class="d-flex align-items-center gap-1">' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="restarEdit{{ v.id }}(' + k + ')">-</button>' +
+            '<span class="fw-bold px-2">' + item.cantidad + '</span>' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="sumarEdit{{ v.id }}(' + k + ')">+</button>' +
+            '</div></td>' +
+            '<td class="text-end fw-bold">$' + sub.toLocaleString('es-CO') + '</td>' +
+            '<td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarEdit{{ v.id }}(' + k + ')"><i class="fa-solid fa-trash"></i></button></td>';
+        tbody.appendChild(tr);
+        [['producto_id[]', item.productoId], ['producto_nombre[]', item.nombre], ['producto_precio[]', item.precio], ['producto_cantidad[]', item.cantidad]].forEach(function (pair) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = pair[0]; inp.value = pair[1];
+            ocultos.appendChild(inp);
+        });
+    }
+    totalEl.textContent = '$' + total.toLocaleString('es-CO');
+}
+</script>
+{% endif %}
+{% endfor %}
+
+<!-- ==================== MODALES VER DETALLE ==================== -->
+{% for v in ventas %}
+<div class="modal fade modal-detalle" id="modalVerVenta{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-detalle-icon">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+                <h4 class="modal-detalle-title">Detalle de Venta #{{ v.id }}</h4>
+                
+                <table class="modal-detalle-table mb-4">
+                    <tr><td style="width: 25%;">Cliente</td><td>{{ v.cliente }}</td></tr>
+                    <tr><td>Fecha</td><td>{{ v.fecha|date:"d/m/Y H:i" }}</td></tr>
+                    <tr>
+                        <td>Estado</td>
+                        <td>
+                            <span class="badge {% if v.estado == 'Completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                {{ v.estado }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr><td>Total</td><td><strong>${{ v.total|floatformat:0|intcomma }}</strong></td></tr>
+                </table>
+                
+                <h6 class="text-start text-light mb-3 fw-bold" style="font-family: 'DM Sans', sans-serif;">Productos en esta venta:</h6>
+                <table class="modal-detalle-table" style="font-size: 0.9rem;">
+                    <thead>
+                        <tr>
+                            <td class="fw-bold" style="color: #f97316; width: 40%;">Producto</td>
+                            <td class="fw-bold text-center" style="color: #f97316;">Cant.</td>
+                            <td class="fw-bold text-end" style="color: #f97316;">Precio</td>
+                            <td class="fw-bold text-end" style="color: #f97316;">Subtotal</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in v.detalles.all %}
+                        <tr>
+                            <td style="color: #f8fafc; font-weight: normal; text-transform: none;">{{ d.producto_nombre }}</td>
+                            <td class="text-center" style="color: #f8fafc; font-weight: normal;">{{ d.cantidad }}</td>
+                            <td class="text-end" style="color: #f8fafc; font-weight: normal;">${{ d.precio|floatformat:0|intcomma }}</td>
+                            <td class="text-end" style="color: #f8fafc; font-weight: normal;">${{ d.subtotal|floatformat:0|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted" style="color: #f8fafc; font-weight: normal;">Sin productos</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <button type="button" class="btn modal-detalle-btn-cerrar mt-4" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ==================== MODALES ELIMINAR ==================== -->
+{% for v in ventas %}
+{% if v.estado != 'Completada' %}
+<div class="modal fade" id="modalEliminarVenta{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Eliminar Venta #{{ forloop.counter }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'eliminar_venta' v.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Eliminar la venta del cliente <strong>{{ v.cliente }}</strong>?</p>
+                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Sí, eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ventas.js' %}"></script>
+{% endblock %}

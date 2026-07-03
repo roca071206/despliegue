@@ -1,0 +1,375 @@
+/*
+ * modulos.css — Estilos unificados para TODOS los módulos del sistema
+ * Tema: Dark El Despecho (Rojos, Dorados, Grises Oscuros)
+ */
+
+:root {
+  --primary-red: #9b1c1c;
+  --primary-red-hover: #b91c1c;
+  --primary-red-light: rgba(155, 28, 28, 0.1);
+  --accent-gold: #f59e0b;
+  --accent-gold-hover: #d97706;
+  --success-green: #16A34A;
+  --success-green-hover: #15803D;
+  --success-green-light: rgba(22, 163, 74, 0.1);
+  --neutral-black: #161615;
+  --neutral-dark: #1b1d1b;
+  --neutral-gray: #3c3b38;
+  --neutral-light: #525252;
+  --neutral-border: #404040;
+  --text-white: #FFFFFF;
+  --text-light: #F5F5F5;
+  --text-muted: #A3A3A3;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.4);
+  --transition-fast: 0.15s ease-in-out;
+}
+
+/* ── Encabezado de página ─────────────────────────────────────── */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--neutral-border);
+}
+.page-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+.page-header h2 i {
+    color: var(--primary-red);
+}
+
+/* ── Tarjetas ─────────────────────────────────────────────────── */
+.card {
+    background: var(--neutral-dark) !important;
+    border: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-md) !important;
+    margin-bottom: var(--spacing-lg);
+    transition: var(--transition-fast);
+    overflow: hidden;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-red), var(--accent-gold));
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--neutral-light);
+}
+
+.card-header {
+    background: var(--neutral-gray) !important;
+    border-bottom: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 18px 24px !important;
+    color: var(--text-white) !important;
+}
+
+.card-body {
+    padding: var(--spacing-xl) !important;
+    color: var(--text-light);
+}
+
+/* ── Tablas ───────────────────────────────────────────────────── */
+.table {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.table thead th {
+    background: linear-gradient(145deg, #7f1d1d, #9b1c1c) !important;
+    color: var(--text-white) !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    border-bottom: none;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--text-light);
+    border-bottom: 1px solid var(--neutral-border);
+}
+
+.table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Formularios de búsqueda ──────────────────────────────────── */
+.form-control, .form-select {
+    background: var(--neutral-black) !important;
+    border: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius) !important;
+    color: var(--text-light) !important;
+    font-size: 0.875rem !important;
+    padding: 10px 14px !important;
+    transition: var(--transition-fast);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-red) !important;
+    box-shadow: 0 0 0 3px var(--primary-red-light) !important;
+    background: var(--neutral-dark) !important;
+    color: var(--text-white) !important;
+}
+
+.form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.btn {
+    border-radius: var(--border-radius) !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease !important;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px !important;
+}
+
+.btn-primary {
+    background: var(--primary-red) !important;
+    color: var(--text-white) !important;
+}
+.btn-primary:hover {
+    background: var(--primary-red-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(155, 28, 28, 0.4);
+}
+
+.btn-success {
+    background: var(--success-green) !important;
+    color: var(--text-white) !important;
+}
+.btn-success:hover {
+    background: var(--success-green-hover) !important;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #ef4444 !important;
+    color: var(--text-white) !important;
+}
+.btn-danger:hover {
+    background: #dc2626 !important;
+    transform: translateY(-2px);
+}
+
+.btn-info {
+    background: #3B82F6 !important;
+    color: var(--text-white) !important;
+}
+.btn-info:hover {
+    background: #2563EB !important;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background: var(--accent-gold) !important;
+    color: var(--text-black) !important;
+}
+.btn-warning:hover {
+    background: var(--accent-gold-hover) !important;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--neutral-gray) !important;
+    color: var(--text-light) !important;
+}
+.btn-secondary:hover {
+    background: var(--neutral-light) !important;
+    color: var(--text-white) !important;
+}
+
+.btn-sm {
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
+}
+
+/* ── Badges de estado ─────────────────────────────────────────── */
+.badge {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.badge.bg-success, .badge-success { background: var(--success-green-light) !important; color: var(--success-green) !important; border: 1px solid var(--success-green); }
+.badge.bg-danger, .badge-danger { background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border: 1px solid #ef4444; }
+.badge.bg-warning, .badge-warning { background: rgba(245, 158, 11, 0.1) !important; color: var(--accent-gold) !important; border: 1px solid var(--accent-gold); }
+
+/* ── Modales estándar (Agregar/Editar) ────────────────────────── */
+.modal-content {
+    background: var(--neutral-dark) !important;
+    border: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-lg) !important;
+    color: var(--text-light) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(145deg, #7f1d1d, #9b1c1c) !important;
+    border-bottom: none !important;
+    padding: 18px 24px !important;
+    color: white !important;
+}
+
+.modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: var(--text-white) !important;
+}
+
+.modal-body {
+    padding: 24px !important;
+    background: var(--neutral-dark) !important;
+}
+
+.modal-footer {
+    background: var(--neutral-black) !important;
+    border-top: 1px solid var(--neutral-border) !important;
+    padding: 16px 24px !important;
+}
+
+/* ── Modal "Ver Detalles" (Estilo Premium Imagen 1) ───────────── */
+.modal-detalle .modal-content {
+    background: #1e1e1e !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal-detalle .modal-header {
+    background: transparent !important;
+    border-bottom: none !important;
+    padding: 24px 24px 0 !important;
+    display: flex;
+    justify-content: flex-end !important;
+}
+.modal-detalle .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.5;
+}
+.modal-detalle .btn-close:hover {
+    opacity: 1;
+}
+
+.modal-detalle .modal-body {
+    padding: 0 32px 32px !important;
+    text-align: center;
+}
+
+.modal-detalle-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: transparent;
+    border: 3px solid #0ea5e9;
+    color: #0ea5e9;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.modal-detalle-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #f8fafc;
+    margin-bottom: 24px;
+}
+
+.modal-detalle-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+}
+
+.modal-detalle-table tr {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.modal-detalle-table td {
+    padding: 12px 8px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.modal-detalle-table td:first-child {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #f97316; /* Naranja/Dorado */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 35%;
+}
+
+.modal-detalle-table td:last-child {
+    color: #f8fafc;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.modal-detalle-btn-cerrar {
+    background: #8b5cf6 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 12px 32px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    transition: all 0.2s !important;
+    width: auto !important;
+    margin: 0 auto;
+}
+.modal-detalle-btn-cerrar:hover {
+    background: #7c3aed !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}

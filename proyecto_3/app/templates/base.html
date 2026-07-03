@@ -1,0 +1,743 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario - Grupo 3</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modulos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animaciones.css' %}">
+    <script src="{% static 'js/sweetalert2.min.js' %}"></script>
+    <style>
+        #sidebar {
+            width: 250px;
+            min-height: 100vh;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        #sidebar.collapsed {
+            width: 60px;
+        }
+        #sidebar .link-text {
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        #sidebar.collapsed .link-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        #sidebar.collapsed h4,
+        #sidebar.collapsed .sidebar-title {
+            display: none;
+        }
+        #sidebar a {
+            padding: 10px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        #sidebar a:hover, #sidebar .productos-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .sub-link:hover {
+            background-color: rgba(255,255,255,0.08) !important;
+        }
+        .sub-link.active {
+            background-color: rgba(255,255,255,0.15) !important;
+        }
+        #sidebar a i {
+            min-width: 24px;
+            text-align: center;
+        }
+        #toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        #toggle-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        #main-content {
+            transition: margin-left 0.3s ease;
+            flex: 1;
+        }
+
+        /* ── Botón flotante IA ── */
+        #chat-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f59e0b; /* Dorado */
+            color: #1a1a1a;
+            border: none;
+            font-size: 24px;
+            cursor: move; /* Indicar arrastrable */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        #chat-btn:hover { transform: scale(1.05); }
+
+        /* ── Ventana del chat ── */
+        #chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 370px;
+            height: 500px;
+            background: #1b1d1b;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 9998;
+            overflow: hidden;
+            border: 1px solid #404040;
+        }
+        #chat-window.open { display: flex; }
+
+        #chat-header {
+            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
+            color: white;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        #chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #2a2a2a;
+        }
+
+        #chat-input-area {
+            display: flex;
+            border-top: 1px solid #404040;
+            background: #1b1d1b;
+        }
+        #chat-input-area input {
+            flex: 1;
+            border: none;
+            padding: 12px;
+            outline: none;
+            font-size: 14px;
+            background: #1b1d1b;
+            color: white;
+        }
+        #chat-input-area input::placeholder {
+            color: #a3a3a3;
+        }
+        #chat-input-area button {
+            background: #9b1c1c;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        #chat-input-area button:hover { background: #0b5ed7; }
+    </style>
+</head>
+<body>
+<div style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url('{% static "img/fondo.png" %}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.85;
+    z-index: -1;
+    pointer-events: none;
+"></div>
+
+<nav class="navbar navbar-dark" style="background: linear-gradient(150deg, #3c3b38 0%, #1b1d1b 45%, #161615 100%); border-bottom: 1px solid #404040;">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+            <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
+        </span>
+        <div class="d-flex align-items-center">
+            {% if request.user.is_authenticated %}
+                <span class="text-light me-3">
+                    <i class="fa-solid fa-user me-1"></i>
+                    {{ request.user.get_full_name|default:request.user.username }}
+                    {% if request.user.is_superuser %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;"></span>
+                    {% endif %}
+                </span>
+                <!-- ══════════ CAMPANITA DE NOTIFICACIONES ══════════ -->
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-light position-relative" type="button"
+                            id="dropdownNotif" data-bs-toggle="dropdown"
+                            aria-expanded="false" title="Notificaciones">
+                        <i class="fa-solid fa-bell"></i>
+                        {% if notif_total > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              style="font-size:.65rem;">
+                            {{ notif_total }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow"
+                        aria-labelledby="dropdownNotif"
+                        style="min-width:320px; max-height:420px; overflow-y:auto; z-index:9999;">
+
+                        <li><h6 class="dropdown-header">
+                            <i class="fa-solid fa-bell me-1"></i> Notificaciones
+                        </h6></li>
+
+                        {% if notif_total > 0 %}
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Últimas notificaciones</span>
+                            <button type="button" class="btn btn-sm btn-link text-secondary p-0" id="clear-notifications">
+                                Limpiar
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        {% endif %}
+
+                        {% for notif in notificaciones %}
+                        <li>
+                            <div class="dropdown-item small py-2 d-flex justify-content-between align-items-center">
+                                <a href="{{ notif.url }}" class="text-decoration-none text-dark flex-grow-1" style="white-space: normal;">
+                                    <span class="me-1">{{ notif.icono }}</span>
+                                    <strong>{{ notif.mensaje }}</strong>
+                                </a>
+                                <div class="ms-2 text-nowrap">
+                                    <button class="btn btn-sm btn-link text-primary p-0 me-2 btn-read-notif" data-id="{{ notif.notif_id }}" title="Marcar como leída">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-link text-danger p-0 btn-delete-notif" data-id="{{ notif.notif_id }}" title="Eliminar">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li>
+                            <span class="dropdown-item-text text-muted small text-center py-3">
+                                <i class="fa-solid fa-circle-check text-success me-1"></i>
+                                Sin notificaciones pendientes
+                            </span>
+                        </li>
+                        {% endfor %}
+
+                    </ul>
+                </div>
+                <!-- ══════════════════════════════════════════════════ -->
+
+                <a href="{% url 'logout' %}" class="btn btn-outline-light">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i>Cerrar Sesión
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-light">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i>Iniciar Sesión
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <!-- MENÚ LATERAL -->
+    <aside id="sidebar" class="text-light p-3" style="background: #161615; border-right: 1px solid #404040;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 sidebar-title">Inventario</h4>
+            <button id="toggle-btn" title="Ocultar menú">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'inicio' %} active{% endif %}">
+            <i class="fa-solid fa-house"></i>
+            <span class="link-text ms-2">Inicio</span>
+        </a>
+
+        <!-- Menú desplegable Productos -->
+        <div class="productos-menu mb-2">
+            <button class="productos-toggle d-flex align-items-center text-light text-decoration-none w-100 border-0 bg-transparent p-0"
+                    style="padding: 10px 8px !important; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
+                    onclick="toggleProductosMenu(this)"
+                    title="Productos">
+                <i class="fa-solid fa-box" style="min-width:24px; text-align:center;"></i>
+                <span class="link-text ms-2 d-flex align-items-center justify-content-between w-100">
+                    Productos
+                    <i class="fa-solid fa-chevron-down ms-auto me-1 chevron-icon" style="font-size:.75rem; transition: transform 0.25s;"></i>
+                </span>
+            </button>
+            <div class="productos-submenu ps-3 mt-1"
+                 style="display:{% if request.resolver_match and request.resolver_match.url_name in 'productos,marcas,tipos,unidades' %}block{% else %}none{% endif %}; border-left: 2px solid rgba(255,255,255,0.2);">
+                <a href="{% url 'productos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-boxes-stacked" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Productos</span>
+                </a>
+                <a href="{% url 'marcas' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'marcas' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-tag" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Marcas</span>
+                </a>
+                <a href="{% url 'unidades' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'unidades' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-ruler" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Unidades de Medida</span>
+                </a>
+                <a href="{% url 'tipos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'tipos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-layer-group" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Tipo de Producto</span>
+                </a>
+            </div>
+        </div>
+
+        <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'clientes' %} active{% endif %}">
+            <i class="fa-solid fa-users"></i>
+            <span class="link-text ms-2">Clientes</span>
+        </a>
+        <a href="{% url 'ventas' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'ventas' %} active{% endif %}">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span class="link-text ms-2">Ventas</span>
+        </a>
+        <a href="{% url 'proveedores' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'proveedores' %} active{% endif %}">
+            <i class="fa-solid fa-truck"></i>
+            <span class="link-text ms-2">Proveedores</span>
+        </a>
+        <a href="{% url 'compras' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'compras' %} active{% endif %}">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span class="link-text ms-2">Compras</span>
+        </a>
+        <a href="{% url 'reportes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'reportes' %} active{% endif %}">
+            <i class="fa-solid fa-chart-line"></i>
+            <span class="link-text ms-2">Reportes</span>
+        </a>
+        <a href="{% url 'backup' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'backup' %} active{% endif %}">
+            <i class="fa-solid fa-database"></i>
+            <span class="link-text ms-2">Respaldo BD</span>
+        </a>
+
+        {% if request.user.is_superuser %}
+        <hr class="border-secondary my-2">
+        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'usuarios:listar' %} active{% endif %}">
+            <i class="fa-solid fa-users-gear"></i>
+            <span class="link-text ms-2">Usuarios</span>
+        </a>
+        {% endif %}
+    </aside>
+
+    <!-- CONTENIDO -->
+    <main id="main-content" class="p-4 animate-fade-in">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<footer class="text-light text-center py-2" style="background: #161615; border-top: 1px solid #404040;">
+    <small>Proyecto Inventario - Grupo 3 © 2025</small>
+</footer>
+
+<!-- ── Botón flotante Asistente IA ── -->
+{% if request.user.is_authenticated %}
+<button id="chat-btn" onclick="toggleChat()" title="Asistente IA">
+    <i class="fa-solid fa-robot"></i>
+</button>
+
+<!-- Ventana del chat -->
+<div id="chat-window">
+    <div id="chat-header">
+        <span><i class="fa-solid fa-robot me-2"></i>Asistente IA</span>
+        <button onclick="toggleChat()">✕</button>
+    </div>
+    <div id="chat-box"></div>
+    <div id="chat-input-area">
+        <input type="text" id="user-input" placeholder="Escribe tu pregunta..."
+               onkeydown="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+</div>
+{% endif %}
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/confirmaciones.js' %}"></script>
+<script>
+    // Submenu Productos
+    function toggleProductosMenu(btn) {
+        const submenu = btn.closest('.productos-menu').querySelector('.productos-submenu');
+        const chevron = btn.querySelector('.chevron-icon');
+        const isOpen = submenu.style.display !== 'none';
+        submenu.style.display = isOpen ? 'none' : 'block';
+        chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const submenu = document.querySelector('.productos-submenu');
+        const chevron = document.querySelector('.chevron-icon');
+        if (submenu && submenu.style.display !== 'none') {
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    });
+
+    const toggleBtn = document.getElementById('toggle-btn');
+    const sidebar = document.getElementById('sidebar');
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        const icon = toggleBtn.querySelector('i');
+        if (sidebar.classList.contains('collapsed')) {
+            icon.classList.replace('fa-bars', 'fa-bars-staggered');
+        } else {
+            icon.classList.replace('fa-bars-staggered', 'fa-bars');
+        }
+    });
+</script>
+
+{% if request.user.is_authenticated %}
+<script>
+(function() {
+    const notifButton = document.getElementById('dropdownNotif');
+    const dropdownMenu = document.querySelector('ul.dropdown-menu[aria-labelledby="dropdownNotif"]');
+    const notificationsUrl = '{% url "notificaciones_data" %}';
+    const clearUrl = '{% url "limpiar_notificaciones" %}';
+
+    if (!notifButton || !dropdownMenu) return;
+
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function ensureBadge() {
+        let badge = notifButton.querySelector('span.badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+            badge.style.fontSize = '.65rem';
+            notifButton.appendChild(badge);
+        }
+        return badge;
+    }
+
+    function updateBadge(count) {
+        const badge = ensureBadge();
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function renderDropdown(items) {
+        const header = `<li><h6 class="dropdown-header"><i class="fa-solid fa-bell me-1"></i> Notificaciones</h6></li>`;
+        const clearHtml = items.length > 0 ? `
+            <li class="px-3 py-2 d-flex justify-content-between align-items-center">
+                <span class="small text-muted">Últimas notificaciones</span>
+                <button type="button" class="btn btn-sm btn-link text-secondary p-0" id="clear-notifications">Limpiar</button>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+        ` : '';
+        const content = items.length > 0 ?
+            items.map(notif => `
+                <li>
+                    <div class="dropdown-item small py-2 d-flex justify-content-between align-items-center">
+                        <a href="${notif.url || '#'}" class="text-decoration-none text-dark flex-grow-1" style="white-space: normal;">
+                            <span class="me-1">${notif.icono || '🔔'}</span>
+                            <strong>${notif.mensaje || ''}</strong>
+                        </a>
+                        <div class="ms-2 text-nowrap">
+                            <button class="btn btn-sm btn-link text-primary p-0 me-2 btn-read-notif" data-id="${notif.notif_id}" title="Marcar como leída">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link text-danger p-0 btn-delete-notif" data-id="${notif.notif_id}" title="Eliminar">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            `).join('') : `
+                <li>
+                    <span class="dropdown-item-text text-muted small text-center py-3">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i>
+                        Sin notificaciones pendientes
+                    </span>
+                </li>
+            `;
+
+        dropdownMenu.innerHTML = header + clearHtml + content;
+    }
+
+    function refreshNotifications() {
+        fetch(notificationsUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.ok) return;
+                updateBadge(data.total_notificaciones || 0);
+                renderDropdown(data.notificaciones || []);
+            })
+            .catch(() => {});
+    }
+
+    notifButton.addEventListener('click', function() {
+        refreshNotifications();
+    });
+
+    document.addEventListener('click', function(event) {
+        const clearBtn = event.target.closest('#clear-notifications');
+        const readBtn = event.target.closest('.btn-read-notif');
+        const deleteBtn = event.target.closest('.btn-delete-notif');
+
+        if (clearBtn) {
+            event.preventDefault();
+            fetch(clearUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    updateBadge(0);
+                    renderDropdown([]);
+                }
+            })
+            .catch(() => {});
+        } else if (readBtn) {
+            event.preventDefault();
+            const id = readBtn.getAttribute('data-id');
+            if (!id) return;
+            fetch('/notificaciones/leer/' + id + '/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+            }).then(response => response.json()).then(data => {
+                if (data.ok) refreshNotifications();
+            }).catch(() => {});
+        } else if (deleteBtn) {
+            event.preventDefault();
+            const id = deleteBtn.getAttribute('data-id');
+            if (!id) return;
+            fetch('/notificaciones/eliminar/' + id + '/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+            }).then(response => response.json()).then(data => {
+                if (data.ok) refreshNotifications();
+            }).catch(() => {});
+        }
+    });
+})();
+</script>
+{% endif %}
+
+{% if request.user.is_authenticated %}
+<script>
+const chatBox = document.getElementById('chat-box');
+const input   = document.getElementById('user-input');
+
+function toggleChat() {
+    const win = document.getElementById('chat-window');
+    win.classList.toggle('open');
+    if (win.classList.contains('open')) input.focus();
+}
+
+function getCookie(name) {
+    return document.cookie.split(';')
+        .map(c => c.trim())
+        .find(c => c.startsWith(name + '='))
+        ?.split('=')[1] ?? '';
+}
+
+function addMessage(text, isUser) {
+    const div = document.createElement('div');
+    div.style.cssText = `
+        max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px;
+        ${isUser
+            ? 'background:#f59e0b; color:#1a1a1a; align-self:flex-end; margin-left:auto;'
+            : 'background:#3c3b38; border:1px solid #525252; align-self:flex-start; color:#fff;'}
+    `;
+    div.textContent = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage() {
+    const message = input.value.trim();
+    if (!message) return;
+
+    addMessage(message, true);
+    input.value = '';
+
+    const loading = document.createElement('div');
+    loading.id = 'loading';
+    loading.style.cssText = 'color:#6c757d; font-style:italic; font-size:13px;';
+    loading.textContent = 'Pensando...';
+    chatBox.appendChild(loading);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const res = await fetch('/ia/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+        document.getElementById('loading')?.remove();
+        addMessage(data.reply, false);
+
+    } catch (err) {
+        document.getElementById('loading')?.remove();
+        addMessage('Error de conexión con el servidor.', false);
+    }
+}
+
+// Hacer el botón de IA arrastrable
+if (document.getElementById('chat-btn')) {
+    const btn = document.getElementById('chat-btn');
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    btn.addEventListener("mousedown", dragStart);
+    document.addEventListener("mouseup", dragEnd);
+    document.addEventListener("mousemove", drag);
+
+    function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+        if (e.target === btn || btn.contains(e.target)) {
+            isDragging = true;
+            btn.style.transition = 'none';
+        }
+    }
+
+    function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+        btn.style.transition = 'transform 0.2s';
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+            xOffset = currentX;
+            yOffset = currentY;
+            setTranslate(currentX, currentY, btn);
+        }
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+    }
+}
+</script>
+{% endif %}
+
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mensajes = [
+        {% for message in messages %}
+        { tipo: "{{ message.tags }}", texto: "{{ message|escapejs }}" }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const iconMap  = { 'success': 'success', 'error': 'error', 'warning': 'warning', 'info': 'info', 'debug': 'info' };
+    const titleMap = { 'success': '¡Listo!', 'error': '¡Error!', 'warning': '¡Atención!', 'info': '¡Info!' };
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+
+    mensajes.forEach(function(msg) {
+        const tipo = msg.tipo || 'info';
+        if (tipo === 'success' || tipo === 'info') {
+            Toast.fire({
+                icon: iconMap[tipo],
+                title: msg.texto,
+            });
+        } else {
+            Swal.fire({
+                icon: iconMap[tipo] || 'warning',
+                title: titleMap[tipo] || '¡Atención!',
+                text: msg.texto,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: tipo === 'error' ? '#dc3545' : '#ffc107',
+            });
+        }
+    });
+});
+</script>
+{% endif %}
+
+
+<!-- ── FIX GLOBAL: Limpieza de backdrop y scroll al cerrar cualquier modal ── -->
+<script>
+(function () {
+    // Se ejecuta cada vez que Bootstrap termina de ocultar un modal
+    document.addEventListener('hidden.bs.modal', function () {
+        // Si no hay otro modal abierto, limpiar backdrops residuales
+        var modalAbierto = document.querySelector('.modal.show');
+        if (!modalAbierto) {
+            document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }
+    });
+})();
+</script>
+
+<script src="{% static 'js/animaciones.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

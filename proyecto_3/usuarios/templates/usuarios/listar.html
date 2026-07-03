@@ -1,0 +1,146 @@
+{% extends 'body.html' %}
+{% load static %}
+
+{% block contenido %}
+
+{# ── Header de página ── #}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div style="background:#e0e7ff;border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-users-gear fa-lg" style="color:#4f46e5;"></i>
+        </div>
+        <div>
+            <h4 class="mb-0 fw-bold">Gestión de Usuarios</h4>
+            <small class="text-muted">Administra los accesos al sistema</small>
+        </div>
+    </div>
+    <a href="{% url 'usuarios:crear' %}" class="btn btn-success">
+        <i class="fas fa-user-plus me-1"></i> + Crear Administrador
+    </a>
+</div>
+
+{# ── Tabla ── #}
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0" id="tabla_usuarios">
+            <thead>
+                <tr style="background:#1e293b;color:#fff;">
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">#</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">FOTO</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">USUARIO</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">NOMBRE COMPLETO</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">ROL</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">CÉDULA</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">ESTADO</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <td class="align-middle ps-3">{{ u.id }}</td>
+                    <td class="align-middle">
+                        {% if u.perfil.foto %}
+                            <img src="{{ u.perfil.foto.url }}"
+                                 alt="Foto {{ u.username }}"
+                                 class="rounded-circle border"
+                                 style="width:40px;height:40px;object-fit:cover;">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ u.first_name|urlencode }}+{{ u.last_name|urlencode }}&background=6c757d&color=fff&size=40"
+                                 alt="Sin foto"
+                                 class="rounded-circle border"
+                                 style="width:40px;height:40px;object-fit:cover;">
+                        {% endif %}
+                    </td>
+                    <td class="align-middle fw-semibold">{{ u.username }}</td>
+                    <td class="align-middle">
+                        {% if u.first_name or u.last_name %}
+                            {{ u.first_name }} {{ u.last_name }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="align-middle">
+                        {% if u.perfil %}
+                            {% if u.perfil.rol == 'superadmin' %}
+                                <span class="badge" style="background:#fee2e2;color:#991b1b;padding:5px 10px;border-radius:20px;font-size:.75rem;">
+                                    <i class="fas fa-crown me-1"></i>{{ u.perfil.get_rol_display }}
+                                </span>
+                            {% else %}
+                                <span class="badge" style="background:#e0e7ff;color:#3730a3;padding:5px 10px;border-radius:20px;font-size:.75rem;">
+                                    <i class="fas fa-user-shield me-1"></i>{{ u.perfil.get_rol_display }}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted fst-italic">Sin perfil</span>
+                        {% endif %}
+                    </td>
+                    <td class="align-middle">{{ u.perfil.cedula|default:"N/A" }}</td>
+                    <td class="align-middle">
+                        {% if u.is_active %}
+                            <span class="badge" style="background:#dcfce7;color:#166534;padding:5px 10px;border-radius:20px;font-size:.75rem;">
+                                <i class="fas fa-circle me-1" style="font-size:.5rem;"></i>Activo
+                            </span>
+                        {% else %}
+                            <span class="badge" style="background:#fee2e2;color:#991b1b;padding:5px 10px;border-radius:20px;font-size:.75rem;">
+                                <i class="fas fa-circle me-1" style="font-size:.5rem;"></i>Inactivo
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="align-middle">
+                        <a href="{% url 'usuarios:editar' u.id %}" class="btn btn-sm btn-warning me-1" title="Editar usuario">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="{% url 'usuarios:cambiar_estado' u.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            {% if u.is_active %}
+                                <button type="submit" class="btn btn-sm btn-danger" title="Desactivar usuario">
+                                    <i class="fas fa-user-slash"></i>
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-sm btn-success" title="Activar usuario">
+                                    <i class="fas fa-user-check"></i>
+                                </button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        <i class="fas fa-users fa-2x mb-2 d-block opacity-25"></i>
+                        No hay administradores registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(document).ready(function () {
+    $("#tabla_usuarios").DataTable({
+        responsive: true,
+        autoWidth:  false,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        },
+        columnDefs: [
+            { orderable: false, targets: [1, 7] }
+        ],
+        columns: [
+            null, null, null, null, null, null, null,
+            { orderable: false }
+        ]
+    });
+});
+</script>
+{% endblock %}

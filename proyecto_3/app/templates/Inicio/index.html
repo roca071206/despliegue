@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="section-header">
+    <h1 class="section-title">
+        <i class="fa-solid fa-shop"></i> Panel de Gestión del Inventario
+    </h1>
+    <span class="badge" style="background:#e0e7ff;color:#4338ca;font-size:.8rem;padding:6px 14px;">
+        Sistema de inventario · Grupo 3
+    </span>
+</div>
+
+<!-- Cards de acceso rápido - Fila 1 -->
+<div class="row mt-3 g-4">
+    <div class="col-md-4">
+        <div class="index-card" style="--card-color:#667eea;">
+            <div class="index-card-icon" style="background:#eef0fd;">
+                <i class="fa-solid fa-box fa-2x" style="color:#667eea;"></i>
+            </div>
+            <h5 class="index-card-title">Productos</h5>
+            <p class="index-card-text">Administra el catálogo de productos</p>
+            <a href="{% url 'productos' %}" class="btn btn-primary w-100">
+                <i class="fa-solid fa-arrow-right me-2"></i>Ver Productos
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="index-card" style="--card-color:#22c55e;">
+            <div class="index-card-icon" style="background:#dcfce7;">
+                <i class="fa-solid fa-users fa-2x" style="color:#22c55e;"></i>
+            </div>
+            <h5 class="index-card-title">Clientes</h5>
+            <p class="index-card-text">Gestiona la base de clientes</p>
+            <a href="{% url 'clientes' %}" class="btn btn-success w-100">
+                <i class="fa-solid fa-arrow-right me-2"></i>Ver Clientes
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="index-card" style="--card-color:#f59e0b;">
+            <div class="index-card-icon" style="background:#fef9c3;">
+                <i class="fa-solid fa-cart-shopping fa-2x" style="color:#f59e0b;"></i>
+            </div>
+            <h5 class="index-card-title">Ventas</h5>
+            <p class="index-card-text">Registra y consulta ventas</p>
+            <a href="{% url 'ventas' %}" class="btn btn-warning w-100">
+                <i class="fa-solid fa-arrow-right me-2"></i>Ver Ventas
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Cards de acceso rápido - Fila 2 -->
+<div class="row mt-2 g-4">
+    <div class="col-md-4">
+        <div class="index-card" style="--card-color:#0ea5e9;">
+            <div class="index-card-icon" style="background:#e0f2fe;">
+                <i class="fa-solid fa-truck fa-2x" style="color:#0ea5e9;"></i>
+            </div>
+            <h5 class="index-card-title">Proveedores</h5>
+            <p class="index-card-text">Gestiona tus proveedores</p>
+            <a href="{% url 'proveedores' %}" class="btn btn-info w-100">
+                <i class="fa-solid fa-arrow-right me-2"></i>Ver Proveedores
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="index-card" style="--card-color:#ef4444;">
+            <div class="index-card-icon" style="background:#fee2e2;">
+                <i class="fa-solid fa-bag-shopping fa-2x" style="color:#ef4444;"></i>
+            </div>
+            <h5 class="index-card-title">Compras</h5>
+            <p class="index-card-text">Registra y consulta compras</p>
+            <a href="{% url 'compras' %}" class="btn btn-danger w-100">
+                <i class="fa-solid fa-arrow-right me-2"></i>Ver Compras
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="index-card" style="--card-color:#7c3aed;">
+            <div class="index-card-icon" style="background:#ede9fe;">
+                <i class="fa-solid fa-chart-line fa-2x" style="color:#7c3aed;"></i>
+            </div>
+            <h5 class="index-card-title">Reportes</h5>
+            <p class="index-card-text">Consulta estadísticas del sistema</p>
+            <a href="{% url 'reportes' %}" class="btn w-100" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;">
+                <i class="fa-solid fa-arrow-right me-2"></i>Ver Reportes
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen estadísticas -->
+<div class="stats-bar mt-4">
+    <div class="stats-bar-header">
+        <i class="fa-solid fa-chart-line me-2"></i>Resumen del Sistema
+    </div>
+    <div class="stats-bar-body">
+        <div class="stat-item">
+            <i class="fa-solid fa-box fa-xl" style="color:#667eea;"></i>
+            <span class="stat-label">Productos</span>
+            <span class="stat-value">{{ total_productos }}</span>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-users fa-xl" style="color:#22c55e;"></i>
+            <span class="stat-label">Clientes</span>
+            <span class="stat-value">{{ total_clientes }}</span>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-cart-shopping fa-xl" style="color:#f59e0b;"></i>
+            <span class="stat-label">Ventas</span>
+            <span class="stat-value">{{ total_ventas }}</span>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-truck fa-xl" style="color:#0ea5e9;"></i>
+            <span class="stat-label">Proveedores</span>
+            <span class="stat-value">{{ total_proveedores }}</span>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-bag-shopping fa-xl" style="color:#ef4444;"></i>
+            <span class="stat-label">Compras</span>
+            <span class="stat-value">{{ total_compras }}</span>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-chart-line fa-xl" style="color:#7c3aed;"></i>
+            <span class="stat-label">Reportes</span>
+            <span class="stat-value">{{ total_reportes }}</span>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ── Index cards ── */
+.index-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    transition: transform .2s ease, box-shadow .2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.index-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--card-color);
+    border-radius: 16px 16px 0 0;
+}
+
+.index-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,.12);
+}
+
+.index-card-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.index-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.index-card-text {
+    font-size: .875rem;
+    color: #64748b;
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+/* ── Stats bar ── */
+.stats-bar {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.stats-bar-header {
+    background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+    color: #fff;
+    padding: 14px 22px;
+    font-weight: 600;
+    font-size: .95rem;
+}
+
+.stats-bar-body {
+    display: flex;
+    justify-content: space-around;
+    padding: 24px 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 80px;
+}
+
+.stat-label {
+    font-size: .75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+}
+
+@media (max-width: 768px) {
+    .stats-bar-body { gap: 20px; }
+    .stat-item { min-width: 60px; }
+    .stat-value { font-size: 1.4rem; }
+}
+</style>
+
+{% endblock %}

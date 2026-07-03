@@ -1,0 +1,26 @@
+<div class="modal fade" id="modalEliminarCompra{{ compra.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-trash me-2"></i>Eliminar Compra
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'modal_eliminar_compra' compra.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Está seguro de que desea eliminar la compra <strong>#{{ compra.id }}</strong>?</p>
+                    <p>Proveedor: <strong>{{ compra.proveedor.nombre }}</strong> — Producto: <strong>{{ compra.producto.nombre }}</strong></p>
+                    <p class="text-danger"><i class="fa-solid fa-warning me-2"></i>Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash me-2"></i>Sí, Eliminar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

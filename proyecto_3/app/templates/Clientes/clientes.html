@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
+
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
+    <h2 class="mb-0"><i class="fa-solid fa-users me-2"></i>Gestión de Clientes</h2>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
+        <i class="fa-solid fa-plus me-2"></i>Agregar Cliente
+    </button>
+</div>
+<div class="contenedor-exportar animate-fade-up">
+    <a href="{% url 'exportar_clientes_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_clientes_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+</div>
+
+<!-- Buscador y filtros -->
+<div class="filter-bar animate-fade-up">
+    <form method="GET" class="row g-2 align-items-end w-100">
+        <div class="col-md-3">
+            <label class="form-label mb-1">Buscar</label>
+            <input type="text" name="busqueda" class="form-control"
+                   placeholder="Buscar cliente por nombre..."
+                   pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                   title="Solo se permiten letras y espacios"
+                   value="{{ request.GET.busqueda }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label mb-1">Filtrar por estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="activo" {% if request.GET.estado == "activo" %}selected{% endif %}>Activos</option>
+                <option value="inactivo" {% if request.GET.estado == "inactivo" %}selected{% endif %}>Inactivos</option>
+            </select>
+        </div>
+        <div class="col-md-5 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary flex-fill h-100">
+                <i class="fa-solid fa-filter me-2"></i>Filtrar
+            </button>
+            {% if request.GET.busqueda or request.GET.estado %}
+            <a href="{% url 'clientes' %}" class="btn btn-secondary flex-fill h-100">
+                <i class="fa-solid fa-times me-2"></i>Limpiar
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de clientes -->
+<div class="table-container animate-fade-up">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Documento</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="animate-stagger">
+            {% for cliente in clientes %}
+            <tr class="animate-item">
+                <td>{{ cliente.id }}</td>
+                <td>{{ cliente.nombre }}</td>
+                <td>{{ cliente.documento }}</td>
+                <td>{{ cliente.telefono }}</td>
+                <td>{{ cliente.email }}</td>
+                <td>{{ cliente.direccion }}</td>
+                <td>
+                    {% if cliente.estado == 'activo' %}
+                        <span class="badge badge-success">Activo</span>
+                    {% else %}
+                        <span class="badge badge-danger">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <!-- Botón Ver (siempre visible) -->
+                        <button type="button" class="btn btn-sm btn-info" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalVerCliente{{ cliente.id }}"
+                                title="Ver">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+
+                        <!-- Botón Editar (bloqueado si está activo) -->
+                        <button type="button" class="btn btn-sm btn-warning" 
+                                {% if cliente.estado == 'activo' %}
+                                    style="background-color: darkgrey;"
+                                    disabled title="No se puede editar un cliente activo"
+                                {% else %}
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditarCliente{{ cliente.id }}"
+                                    title="Editar"
+                                {% endif %}>
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+
+                        <!-- Botón Eliminar -->
+                        <button type="button" class="btn btn-sm btn-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEliminarCliente{{ cliente.id }}"
+                                title="Eliminar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center py-4">No hay clientes registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modales agregar -->
+{% include 'clientes/modal_agregar_cliente.html' %}
+
+<!-- Modales editar, eliminar y ver -->
+{% for cliente in clientes %}
+    {% include 'clientes/modal_editar.html' %}
+    {% include 'clientes/modal_eliminar.html' %}
+
+    <!-- Modal Ver Cliente -->
+    <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-detalle-icon">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <h4 class="modal-detalle-title">Información del Cliente</h4>
+                    
+                    <table class="modal-detalle-table">
+                        <tr><td>ID</td><td>{{ cliente.id }}</td></tr>
+                        <tr><td>Nombre</td><td>{{ cliente.nombre }}</td></tr>
+                        <tr><td>Documento</td><td>{{ cliente.documento }}</td></tr>
+                        <tr><td>Teléfono</td><td>{{ cliente.telefono }}</td></tr>
+                        <tr><td>Email</td><td>{{ cliente.email }}</td></tr>
+                        <tr><td>Dirección</td><td>{{ cliente.direccion }}</td></tr>
+                        <tr>
+                            <td>Estado</td>
+                            <td>
+                                {% if cliente.estado == 'activo' %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<script src="{% static 'js/clientes_validaciones.js' %}"></script>
+
+{% endblock %}

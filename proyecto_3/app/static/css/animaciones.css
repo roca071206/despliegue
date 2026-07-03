@@ -1,0 +1,139 @@
+/* animaciones.css - Sistema global de animaciones ligero */
+
+/* 1. Animaciones base */
+.animate-fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: opacity, transform;
+}
+
+.animate-fade-in {
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: opacity;
+}
+
+.animate-slide-left {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: opacity, transform;
+}
+
+/* Estado activo para animaciones base */
+.animate-active {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto !important; /* Fix modal backdrop issue */
+}
+
+/* 2. Animaciones en Cascada (Stagger) */
+.animate-stagger .animate-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: opacity, transform;
+}
+
+/* El retraso se aplica vía JS. El estado activo lo maneja el contenedor */
+.animate-stagger.animate-active .animate-item {
+    opacity: 1;
+    transform: none;
+    will-change: auto; /* Fix modal backdrop issue */
+}
+
+/* Optimizaciones para hover en tarjetas animadas */
+.card.animate-fade-up.animate-active, .card.animate-item {
+    transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
+}
+.card.animate-fade-up.animate-active:hover, .animate-active .card.animate-item:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* ==============================================================
+   MICROINTERACCIONES GLOBALES (UX/UI)
+   ============================================================== */
+
+/* --- 1. Botones (Efecto Shine y Click) --- */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+/* Efecto Shine (Brillo al pasar el cursor) */
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    transition: none;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.btn:hover::after {
+    animation: shine 0.75s ease-out forwards;
+}
+
+@keyframes shine {
+    100% { left: 200%; }
+}
+
+/* Elevación sutil en hover para botones primary/success/etc */
+.btn:not(.btn-link):not(.btn-sm):not(.btn-close):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+
+/* --- 2. Inputs y Selects (Focus Animado) --- */
+.form-control, .form-select {
+    transition: all 0.3s ease !important;
+}
+
+.form-control:focus, .form-select:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(155, 28, 28, 0.15) !important; /* Glow rojo institucional */
+    border-color: #9b1c1c !important;
+}
+
+
+/* --- 3. Enlaces (Subrayado animado) --- */
+a {
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+/* Aplicar efecto a enlaces de texto que no sean botones ni cards */
+main a:not(.btn):not(.card):not(.dropdown-item):not(.text-decoration-none) {
+    position: relative;
+    text-decoration: none !important;
+}
+
+main a:not(.btn):not(.card):not(.dropdown-item):not(.text-decoration-none)::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1.5px;
+    bottom: -2px;
+    left: 0;
+    background-color: currentColor;
+    transition: width 0.3s ease;
+}
+
+main a:not(.btn):not(.card):not(.dropdown-item):not(.text-decoration-none):hover::after {
+    width: 100%;
+}
+
+
+/* Modales (Utilizamos animaciones por defecto de Bootstrap para máxima compatibilidad) */

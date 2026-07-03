@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{# ── Header de página ── #}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div style="background:#eff6ff;border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-ruler fa-lg" style="color:#1d4ed8;"></i>
+        </div>
+        <div>
+            <h4 class="mb-0 fw-bold">Gestión de Unidades de Medida</h4>
+            <small class="text-muted">Agrega o elimina unidades de medida</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    {# ── Formulario agregar ── #}
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header text-white d-flex align-items-center gap-2"
+                 style="background:linear-gradient(135deg,#16a34a,#15803d);">
+                <i class="fas fa-plus-circle"></i>
+                <span class="fw-semibold">Agregar Unidad</span>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'crear_unidad' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:'productos' }}">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Nombre de la Unidad <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="nombre_unidad" class="form-control" required
+                               minlength="2" maxlength="100"
+                               oninput="bloquearNombreUnidad(this)"
+                               placeholder="Ej: Kilogramo, Litro...">
+                        <div id="unidad_error" class="text-danger small mt-1" style="display:none;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Abreviatura <span class="text-danger">*</span>
+                        </label>
+                        <select name="abreviatura" class="form-select" required id="select_abreviatura">
+                            <option value="">-- Seleccione una abreviatura --</option>
+                            <option value="kg">kg — Kilogramo</option>
+                            <option value="g">g — Gramo</option>
+                            <option value="mg">mg — Miligramo</option>
+                            <option value="t">t — Tonelada</option>
+                            <option value="lb">lb — Libra</option>
+                            <option value="oz">oz — Onza</option>
+                            <option value="l">l — Litro</option>
+                            <option value="ml">ml — Mililitro</option>
+                            <option value="cl">cl — Centilitro</option>
+                            <option value="m">m — Metro</option>
+                            <option value="cm">cm — Centímetro</option>
+                            <option value="mm">mm — Milímetro</option>
+                            <option value="un">un — Unidad</option>
+                            <option value="doc">doc — Docena</option>
+                            <option value="paq">paq — Paquete</option>
+                            <option value="caj">caj — Caja</option>
+                            <option value="bol">bol — Bolsa</option>
+                            <option value="bot">bot — Botella</option>
+                            <option value="lta">lta — Lata</option>
+                            <option value="por">por — Porción</option>
+                        </select>
+                        <div id="abreviatura_error" class="text-danger small mt-1" style="display:none;"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-save me-1"></i> Guardar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# ── Lista de unidades ── #}
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex align-items-center justify-content-between"
+                 style="background:#1e293b;color:#fff;">
+                <span class="fw-semibold" style="font-size:.85rem;letter-spacing:.04em;">
+                    <i class="fas fa-list me-2"></i>UNIDADES REGISTRADAS
+                </span>
+                <span class="badge bg-secondary">{{ unidades|length }}</span>
+            </div>
+            <table class="table table-hover mb-0">
+                <thead style="background:#334155;color:#fff;">
+                    <tr>
+                        <th style="padding:12px 16px;font-size:.75rem;letter-spacing:.06em;">NOMBRE</th>
+                        <th style="padding:12px 16px;font-size:.75rem;letter-spacing:.06em;">ABREVIATURA</th>
+                        <th style="padding:12px 16px;font-size:.75rem;letter-spacing:.06em;">ACCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for unidad in unidades %}
+                    <tr>
+                        <td class="align-middle ps-3 fw-semibold">{{ unidad.nombre_unidad }}</td>
+                        <td class="align-middle">
+                            <span class="badge bg-light text-dark border" style="font-size:.8rem;">
+                                {{ unidad.abreviatura }}
+                            </span>
+                        </td>
+                        <td class="align-middle">
+                            <form method="POST" action="{% url 'eliminar_unidad' unidad.idUnidad %}">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-danger btn-sm"
+                                        onclick="confirmarEliminar('{{ unidad.nombre_unidad }}', this.closest('form'))">
+                                    <i class="fa-solid fa-trash me-1"></i> Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            <i class="fas fa-ruler fa-2x mb-2 d-block opacity-25"></i>
+                            No hay unidades registradas
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/unidades.js' %}"></script>
+{% endblock %}

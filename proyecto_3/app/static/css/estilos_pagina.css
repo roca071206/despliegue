@@ -1,0 +1,608 @@
+/* ============================================
+   🏪 SISTEMA INVENTARIO "DON PEPE'S MARKET" 🏪
+   Estilo: Moderno + Cálido + Funcional
+   Paleta: Naranja (acción) + Verde (éxito) + Gris oscuro (elegancia)
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ===== VARIABLES CREATIVAS ===== */
+:root {
+  /* Colores principales - Naranja cálido en lugar de rojo agresivo */
+  --primary: #f97316;
+  --primary-dark: #ea580c;
+  --primary-light: #ffedd5;
+  --primary-glow: rgba(249, 115, 22, 0.15);
+  
+  /* Éxito y stock - Verde positivo */
+  --success: #10b981;
+  --success-dark: #059669;
+  --success-light: #d1fae5;
+  --success-glow: rgba(16, 185, 129, 0.1);
+  
+  /* Advertencia - Amarillo */
+  --warning: #f59e0b;
+  --warning-light: #fed7aa;
+  
+  /* Fondos - Oscuro pero no negro puro */
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --bg-hover: #334155;
+  --bg-input: #0f172a;
+  
+  /* Texto */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Bordes */
+  --border: #334155;
+  --border-light: #475569;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 20px var(--primary-glow);
+  
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+/* ===== RESET Y BASE ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #0a0f1a 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Patrón de fondo tipo "papel cuadriculado" para sensación de inventario */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== SIDEBAR MODERNA (igual a tu imagen pero mejorada) ===== */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px;
+  z-index: 100;
+  transition: all 0.3s ease;
+  overflow-y: auto;
+}
+
+/* Logo con efecto neón */
+.sidebar h2 {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar h2::before {
+  content: "🏪";
+  font-size: 24px;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+/* Menú items con iconos animados */
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: 4px 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar nav a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--primary);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.sidebar nav a:hover::before,
+.sidebar nav a.active::before {
+  transform: scaleY(1);
+}
+
+.sidebar nav a:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.sidebar nav a.active {
+  background: var(--primary-glow);
+  color: var(--primary);
+}
+
+/* Iconos emoji personalizados (como en tu imagen original) */
+.sidebar nav a:nth-child(1) i::before { content: "🏠"; }
+.sidebar nav a:nth-child(2) i::before { content: "📦"; }
+.sidebar nav a:nth-child(3) i::before { content: "👥"; }
+.sidebar nav a:nth-child(4) i::before { content: "💰"; }
+.sidebar nav a:nth-child(5) i::before { content: "🚚"; }
+.sidebar nav a:nth-child(6) i::before { content: "🛒"; }
+.sidebar nav a:nth-child(7) i::before { content: "📊"; }
+.sidebar nav a:nth-child(8) i::before { content: "💾"; }
+.sidebar nav a:nth-child(9) i::before { content: "👤"; }
+
+.sidebar nav a i {
+  font-style: normal;
+  width: 24px;
+  font-size: 18px;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+.main-content {
+  margin-left: var(--sidebar-width);
+  padding: 32px 40px;
+  min-height: 100vh;
+}
+
+/* ===== HEADER DEL PANEL ===== */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.panel-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.panel-header h1::before {
+  content: "📊";
+  background: none;
+  -webkit-text-fill-color: initial;
+  font-size: 32px;
+}
+
+/* ===== BOTONES DE EXPORTACIÓN (como en tu imagen) ===== */
+.export-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-export {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.btn-pdf {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-pdf:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.btn-excel {
+  background: linear-gradient(135deg, var(--success), var(--success-dark));
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-excel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* ===== BARRA DE BÚSQUEDA Y FILTROS (como en tu imagen) ===== */
+.search-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.search-section:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.search-box {
+  flex: 2;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.search-box::before {
+  content: "🔍";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.filter-group {
+  flex: 1;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.btn-search {
+  padding: 12px 28px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-search:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* ===== TABLA DE PRODUCTOS (la parte más importante) ===== */
+.table-wrapper {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+tbody tr {
+  transition: all 0.2s ease;
+}
+
+tbody tr:hover {
+  background: var(--bg-hover);
+  transform: scale(1.01);
+}
+
+/* Estilos específicos para columnas */
+td:first-child, th:first-child {
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+td:nth-child(3) { /* Precio */
+  color: var(--success);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+td:nth-child(4) { /* Stock */
+  font-weight: 700;
+}
+
+/* Badge de stock (crítico, bajo, normal) */
+.stock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stock-high {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+.stock-medium {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.stock-low {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Botones de acción (🟢 🟣 🟤 de tu imagen) */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.btn-icon.edit {
+  color: #3b82f6;
+}
+
+.btn-icon.edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: scale(1.1);
+}
+
+.btn-icon.view {
+  color: var(--success);
+}
+
+.btn-icon.view:hover {
+  background: rgba(16, 185, 129, 0.2);
+  transform: scale(1.1);
+}
+
+.btn-icon.delete {
+  color: #ef4444;
+}
+
+.btn-icon.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+}
+
+/* ===== BOTÓN AGREGAR PRODUCTO FLOTANTE ===== */
+.btn-add-floating {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border: none;
+  padding: 16px 28px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 99;
+  font-family: inherit;
+}
+
+.btn-add-floating:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(249, 115, 22, 0.5);
+}
+
+.btn-add-floating:active {
+  transform: translateY(0);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+    padding: 16px 8px;
+  }
+  
+  .sidebar h2 span {
+    display: none;
+  }
+  
+  .sidebar h2::before {
+    font-size: 28px;
+  }
+  
+  .sidebar nav a span:not(i) {
+    display: none;
+  }
+  
+  .sidebar nav a {
+    justify-content: center;
+    padding: 12px;
+  }
+  
+  .sidebar nav a i {
+    font-size: 22px;
+  }
+  
+  .main-content {
+    margin-left: 80px;
+    padding: 20px;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+  }
+  
+  .search-box, .filter-group, .btn-search {
+    width: 100%;
+  }
+  
+  .export-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .btn-add-floating {
+    padding: 12px 20px;
+    font-size: 13px;
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  th, td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
+
+/* ===== SCROLLBAR PERSONALIZADA ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}

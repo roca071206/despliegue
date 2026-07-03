@@ -1,0 +1,57 @@
+<div class="modal fade" id="modalEditarCompra{{ compra.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-edit me-2"></i>Editar Compra
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'modal_editar_compra' compra.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+                        <select name="proveedor" class="form-control" required>
+                            {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}"
+                                    {% if compra.proveedor.id == proveedor.id %}selected{% endif %}>
+                                    {{ proveedor.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto <span class="text-danger">*</span></label>
+                        <select name="producto" class="form-control" required>
+                            {% for producto in productos %}
+                                <option value="{{ producto.id }}"
+                                    {% if compra.producto.id == producto.id %}selected{% endif %}>
+                                    {{ producto.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" class="form-control"
+                               value="{{ compra.fecha|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado <span class="text-danger">*</span></label>
+                        <select name="estado" class="form-control" required>
+                            <option value="Completada" {% if compra.estado == True %}selected{% endif %}>Completada</option>
+                            <option value="Pendiente" {% if compra.estado == False %}selected{% endif %}>Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fa-solid fa-save me-2"></i>Actualizar Compra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

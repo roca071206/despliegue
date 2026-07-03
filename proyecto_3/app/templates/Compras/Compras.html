@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
+    <h2 class="mb-0"><i class="fa-solid fa-shopping-cart me-2"></i>Gestión de Compras</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearCompra">
+        <i class="fa-solid fa-plus me-2"></i>Agregar Compra
+    </button>
+</div>
+<div class="contenedor-exportar animate-fade-up">
+    <a href="{% url 'exportar_compras_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_compras_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+</div>
+
+<!-- Buscador y filtros -->
+<div class="filter-bar animate-fade-up">
+    <form method="GET" class="row g-2 align-items-end w-100">
+        <div class="col-md-3">
+            <label class="form-label mb-1">Buscar</label>
+            <input type="text" name="busqueda" class="form-control"
+                   placeholder="Buscar por proveedor o producto..."
+                   value="{{ request.GET.busqueda }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label mb-1">Filtrar por estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="Completada" {% if request.GET.estado == "Completada" %}selected{% endif %}>Completada</option>
+                <option value="Pendiente"  {% if request.GET.estado == "Pendiente"  %}selected{% endif %}>Pendiente</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label mb-1">Desde</label>
+            <input type="date" name="fecha_desde" class="form-control"
+                   value="{{ request.GET.fecha_desde }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label mb-1">Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control"
+                   value="{{ request.GET.fecha_hasta }}">
+        </div>
+        <div class="col-md-3 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary flex-fill h-100">
+                <i class="fa-solid fa-filter me-2"></i>Buscar
+            </button>
+            {% if request.GET.busqueda or request.GET.estado or request.GET.fecha_desde or request.GET.fecha_hasta %}
+            <a href="{% url 'compras' %}" class="btn btn-secondary flex-fill h-100">
+                <i class="fa-solid fa-times me-2"></i>Limpiar
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de compras -->
+<div class="table-container animate-fade-up">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Producto</th>
+                <th>Cant.</th>
+                <th>Total</th>
+                <th>Administrador</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="animate-stagger">
+            {% for compra in compras %}
+            <tr class="animate-item">
+                <td>{{ compra.idCompra }}</td>
+                <td>{{ compra.Proveedor.nombre }}</td>
+                <td>{{ compra.Producto.nombre }}</td>
+                <td>{{ compra.cantidad }}</td>
+                <td>${{ compra.total|floatformat:0 }}</td>
+                <td>
+                    {% if compra.usuario %}
+                        {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ compra.fechaCompra|date:"d/m/Y" }}</td>
+                <td>
+                    {% if compra.estado == 'Completada' %}
+                        <span class="badge badge-success">Completada</span>
+                    {% else %}
+                        <span class="badge badge-warning">Pendiente</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-info"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalVerCompra{{ compra.idCompra }}"
+                                title="Ver">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning"
+                                {% if compra.estado == 'Completada' %}
+                                    disabled
+                                    style="background-color: #6c757d; border-color: #6c757d;"
+                                    title="No se puede editar una compra completada"
+                                {% else %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditarCompra{{ compra.idCompra }}"
+                                    title="Editar"
+                                {% endif %}>
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
+                                title="Eliminar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center py-4">No hay compras registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal: Crear Compra -->
+<div class="modal fade" id="modalCrearCompra" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'crear_compra' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" class="form-control"
+                               min="{{ fecha_min }}" max="{{ fecha_max }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-control">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Completada">Completada</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto <span class="text-danger">*</span></label>
+                        <select name="producto_id" class="form-control" required>
+                            <option value="">Seleccione un producto</option>
+                            {% for producto in productos %}
+                                <option value="{{ producto.idProducto }}">{{ producto.nombre }} (stock: {{ producto.stock }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Cantidad <span class="text-danger">*</span></label>
+                            <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Precio unitario <span class="text-danger">*</span></label>
+                            <input type="number" name="precio_unitario" class="form-control" min="0.01" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+                        <select name="proveedor_id" class="form-control" required>
+                            <option value="">Seleccione un proveedor</option>
+                            {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <a href="{% url 'proveedores' %}" class="text-success" style="font-size: 13px;">
+                            <i class="fa-solid fa-plus"></i> Gestionar Proveedores
+                        </a>
+                    </div>
+                    <div class="alert alert-info py-2 mb-0" style="font-size:.85rem;">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        El stock solo aumenta cuando el estado es <strong>Completada</strong>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-save me-1"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modales Ver, Editar y Eliminar por compra -->
+{% for compra in compras %}
+
+<!-- Modal Ver -->
+<div class="modal fade modal-detalle" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-detalle-icon">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                </div>
+                <h4 class="modal-detalle-title">Información de la Compra</h4>
+                
+                <table class="modal-detalle-table">
+                    <tr><td>ID</td><td>{{ compra.idCompra }}</td></tr>
+                    <tr><td>Proveedor</td><td>{{ compra.Proveedor.nombre }}</td></tr>
+                    <tr><td>Producto</td><td>{{ compra.Producto.nombre }}</td></tr>
+                    <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades</td></tr>
+                    <tr><td>Total</td><td>${{ compra.total|floatformat:2 }}</td></tr>
+                    <tr>
+                        <td>Administrador</td>
+                        <td>
+                            {% if compra.usuario %}
+                                {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr><td>Fecha</td><td>{{ compra.fechaCompra|date:"d/m/Y" }}</td></tr>
+                    <tr>
+                        <td>Estado</td>
+                        <td>
+                            {% if compra.estado == 'Completada' %}
+                                <span class="badge badge-success">Completada</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pendiente</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditarCompra{{ compra.idCompra }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra #{{ compra.idCompra }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'modal_editar_compra' compra.idCompra %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" class="form-control"
+                               value="{{ compra.fechaCompra|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-control">
+                            <option value="Pendiente" {% if compra.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="Completada" {% if compra.estado == 'Completada' %}selected{% endif %}>Completada</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto <span class="text-danger">*</span></label>
+                        <select name="producto_id" class="form-control" required>
+                            {% for producto in productos %}
+                                <option value="{{ producto.idProducto }}"
+                                    {% if compra.Producto.idProducto == producto.idProducto %}selected{% endif %}>
+                                    {{ producto.nombre }} (stock: {{ producto.stock }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Cantidad <span class="text-danger">*</span></label>
+                            <input type="number" name="cantidad" class="form-control"
+                                   min="1" value="{{ compra.cantidad }}" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Precio unitario <span class="text-danger">*</span></label>
+                            <input type="number" name="precio_unitario" class="form-control"
+                                   min="0.01" step="0.01" value="{{ compra.precio_unitario }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+                        <select name="proveedor_id" class="form-control" required>
+                            {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}"
+                                    {% if compra.Proveedor.id == proveedor.id %}selected{% endif %}>
+                                    {{ proveedor.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fa-solid fa-save me-1"></i> Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-trash me-1"></i> Eliminar Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'modal_eliminar_compra' compra.idCompra %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.idCompra }}</strong>?</p>
+                    <p>
+                        Proveedor: <strong>{{ compra.Proveedor.nombre }}</strong> —
+                        Producto: <strong>{{ compra.Producto.nombre }}</strong>
+                    </p>
+                    <p class="text-danger">
+                        <i class="fa-solid fa-warning me-2"></i>Esta acción no se puede deshacer.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+
+{% endblock %}

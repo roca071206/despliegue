@@ -1,0 +1,75 @@
+<div class="modal fade" id="modalAgregarCliente" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-plus me-2"></i>Agregar Cliente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'crear_cliente' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control"
+                               required minlength="3" maxlength="100"
+                               pattern="[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+"
+                               title="Solo letras y espacios (mínimo 3 caracteres)"
+                               placeholder="Ej: Juan Pérez">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Documento <span class="text-danger">*</span></label>
+                        <!-- ✅ min 6, max 12 según modelo -->
+                        <input type="text" name="documento" class="form-control"
+                               required minlength="10" maxlength="10"
+                               pattern="[0-9]{10}"
+                               title="Solo números (diez digitos)"
+                               oninput="this.value = this.value.replace(/[^\d]/g, '')"
+                               placeholder="Ej: 1234567890">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+                        <input type="text" name="telefono" class="form-control"
+                               required minlength="7" maxlength="10"
+                               pattern="[0-9]+"
+                               title="Solo números (entre 7 y 10 dígitos)"
+                               oninput="this.value = this.value.replace(/[^\d]/g, '')"
+                               placeholder="Ej: 3001234567">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <!-- ✅ type="text" + pattern para no bloquear edición de emails inválidos ya guardados -->
+                        <input type="text" name="email" class="form-control"
+                               required maxlength="100"
+                               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                               title="Ingrese un email válido (ejemplo: cliente@empresa.com)"
+                               placeholder="Ej: cliente@ejemplo.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección <span class="text-danger">*</span></label>
+                        <input type="text" name="direccion" class="form-control"
+                               required minlength="5" maxlength="200"
+                               title="Mínimo 5 caracteres"
+                               placeholder="Ej: Calle 123 #45-67">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado <span class="text-danger">*</span></label>
+                        <!-- ✅ valores en minúscula según modelo ('activo', 'inactivo') -->
+                        <select name="estado" class="form-control" required>
+                            <option value="">Seleccione un estado</option>
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-save me-2"></i>Guardar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

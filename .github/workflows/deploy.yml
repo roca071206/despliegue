@@ -1,0 +1,45 @@
+name: Django CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # --- Dependencias del sistema (las mismas que usa tu Dockerfile) ---
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            default-libmysqlclient-dev \
+            default-mysql-client \
+            gcc \
+            pkg-config \
+            libcairo2-dev \
+            libpango-1.0-0 \
+            libpangocairo-1.0-0 \
+            libgdk-pixbuf-2.0-0 \
+            libffi-dev \
+            shared-mime-info
+      # ----------------------------
+
+      - name: Instalar dependencias de Python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r proyecto_3/requirements.txt
+
+      - name: Ejecutar pruebas
+        run: |
+          cd proyecto_3
+          python manage.py check
