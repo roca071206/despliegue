@@ -121,12 +121,12 @@
 </div>
 
 <!-- Modales agregar -->
-{% include 'clientes/modal_agregar_cliente.html' %}
+{% include 'Clientes/modal_agregar_cliente.html' %}
 
 <!-- Modales editar, eliminar y ver -->
 {% for cliente in clientes %}
-    {% include 'clientes/modal_editar.html' %}
-    {% include 'clientes/modal_eliminar.html' %}
+    {% include 'Clientes/modal_editar_cliente.html' %}
+    {% include 'Clientes/modal_eliminar_cliente.html' %}
 
     <!-- Modal Ver Cliente -->
     <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1">
