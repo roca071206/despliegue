@@ -25,7 +25,14 @@ SECRET_KEY = _env(
     'dev-only-change-me',
     required=not DEBUG,
 )
+
 ALLOWED_HOSTS = [host.strip() for host in _env('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
+
+# Render inyecta esta variable automáticamente con el dominio del servicio.
+# La agregamos a ALLOWED_HOSTS sin que tengas que configurar nada manualmente.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     'app',
